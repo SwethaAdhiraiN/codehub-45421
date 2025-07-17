@@ -4,7 +4,8 @@ from .models import User, CodeNest, Version, Rating, Feedback, Favorite, Integra
 # PUBLIC_INTERFACE
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ['id', 'username', 'email', 'is_staff']
+    list_display = ['id', 'username', 'email', 'mobile_number', 'is_staff']
+    search_fields = ['username', 'email', 'mobile_number']
 
 # PUBLIC_INTERFACE
 @admin.register(CodeNest)

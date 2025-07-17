@@ -4,9 +4,10 @@ from django.utils import timezone
 
 # PUBLIC_INTERFACE
 class User(AbstractUser):
-    """Custom user model with support for OAuth/email and basic profile details."""
+    """Custom user model with support for OAuth/email, mobile number, and basic profile details."""
     avatar_url = models.URLField(blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
+    mobile_number = models.CharField(max_length=20, blank=True, null=True, unique=True, help_text="User's mobile phone number.")
     # Email field (already in AbstractUser)
     # Username field (already in AbstractUser)
     # Password field (already in AbstractUser)

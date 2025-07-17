@@ -5,19 +5,31 @@ from .models import User, CodeNest, Version, Rating, Feedback, Favorite, Integra
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'avatar_url', 'bio']
+        fields = ['id', 'username', 'email', 'mobile_number', 'avatar_url', 'bio']
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
+    mobile_number = serializers.CharField(required=True, max_length=20)
+
     class Meta:
         model = User
-        fields = ('username', 'password', 'email')
+        fields = ('username', 'password', 'email', 'mobile_number')
+
+    def validate_mobile_number(self, value):
+        # Basic mobile validation: digits and maybe +, - or spaces
+        import re
+        if not re.match(r'^[\d\+\-\s]+$', value):
+            raise serializers.ValidationError("Mobile number must contain only numbers, '+', '-', or spaces.")
+        if User.objects.filter(mobile_number=value).exists():
+            raise serializers.ValidationError("User with this mobile number already exists.")
+        return value
 
     def create(self, validated_data):
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
-            password=validated_data['password']
+            password=validated_data['password'],
+            mobile_number=validated_data['mobile_number'],
         )
         return user
 
