@@ -1,0 +1,49 @@
+# Django backend CORS and HTTPS configuration for NestCode
+
+1. Install django-cors-headers if not already:
+   pip install django-cors-headers
+
+2. In settings.py, add to INSTALLED_APPS:
+   INSTALLED_APPS = [
+       ...
+       "corsheaders",
+       ...
+   ]
+
+3. Add corsheaders middleware before CommonMiddleware:
+   MIDDLEWARE = [
+       "corsheaders.middleware.CorsMiddleware",
+       "django.middleware.common.CommonMiddleware",
+       ...
+   ]
+
+4. Allow the React production origin (HTTPS):
+   CORS_ALLOWED_ORIGINS = [
+       "https://vscode-internal-690-beta.beta01.cloud.kavia.ai:3000",
+   ]
+
+   # For local dev (optional, remove/comment for production):
+   # "http://localhost:3000",
+
+5. If both dev/prod:
+   from corsheaders.defaults import default_headers
+   CORS_ALLOW_HEADERS = list(default_headers) + [
+       "access-control-allow-origin",
+   ]
+
+6. If using cookies/auth, set:
+   CORS_ALLOW_CREDENTIALS = True
+
+7. Strongly recommended: Set
+   CSRF_TRUSTED_ORIGINS = ["https://vscode-internal-690-beta.beta01.cloud.kavia.ai:3000"]
+
+8. Only serve backend at HTTPS (recommended), via reverse proxy or similar. 
+   Ensure Django is NOT listening directly on HTTP in production if sensitive data is used.
+
+9. Restart the Django backend for changes to take effect.
+
+10. Verify response headers in browser console:
+    Should see `Access-Control-Allow-Origin: https://vscode-internal-690-beta.beta01.cloud.kavia.ai:3000`
+    for API responses.
+
+# For more details: https://github.com/adamchainz/django-cors-headers#setup
