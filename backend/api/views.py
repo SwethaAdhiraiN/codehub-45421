@@ -27,10 +27,29 @@ def health(request):
 
 # PUBLIC_INTERFACE
 class RegisterView(generics.CreateAPIView):
-    """User email/password registration"""
+    """User registration supporting email, password and mobile number.
+
+    Returns:
+        201: User created, with minimal user info.
+        400: Validation failure with error details per field.
+    """
     queryset = User.objects.all()
     permission_classes = [AllowAny]
     serializer_class = UserRegisterSerializer
+
+    def create(self, request, *args, **kwargs):
+        """
+        Handle user registration, returning detailed errors for frontend.
+        """
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response({
+            "message": "Registration successful.",
+            "user": serializer.data
+        }, status=status.HTTP_201_CREATED, headers=headers)
 
 # PUBLIC_INTERFACE
 class LoginView(APIView):

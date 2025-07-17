@@ -18,18 +18,38 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     def validate_mobile_number(self, value):
         # Basic mobile validation: digits and maybe +, - or spaces
         import re
+        value = value.strip()
         if not re.match(r'^[\d\+\-\s]+$', value):
             raise serializers.ValidationError("Mobile number must contain only numbers, '+', '-', or spaces.")
-        if User.objects.filter(mobile_number=value).exists():
+        # avoid duplicate mobile with blank/null (treat as not unique if blank)
+        if value and User.objects.filter(mobile_number=value).exists():
             raise serializers.ValidationError("User with this mobile number already exists.")
         return value
 
+    def validate(self, data):
+        # Validate email is present, username is present, mobile is present, and password is strong enough
+        errors = {}
+        if not data.get('username', '').strip():
+            errors['username'] = 'Username is required.'
+        if not data.get('email', '').strip():
+            errors['email'] = 'Email is required.'
+        if not data.get('mobile_number', '').strip():
+            errors['mobile_number'] = 'Mobile number is required.'
+        if not data.get('password', '') or len(data['password']) < 6:
+            errors['password'] = 'Password must be at least 6 characters.'
+        if errors:
+            raise serializers.ValidationError(errors)
+        return data
+
     def create(self, validated_data):
+        # Remove any accidental extra fields
+        valid_fields = ('username', 'email', 'password', 'mobile_number')
+        user_fields = {k: v for k, v in validated_data.items() if k in valid_fields}
         user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password'],
-            mobile_number=validated_data['mobile_number'],
+            username=user_fields['username'],
+            email=user_fields['email'],
+            password=user_fields['password'],
+            mobile_number=user_fields['mobile_number'],
         )
         return user
 
